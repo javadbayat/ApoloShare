@@ -26,22 +26,27 @@ void trackProgress(long portion) {
 }
 
 int main(int argc, char **argv) {
-    unsigned short vendorID = 0x0000;
-    unsigned short productID = 0x0000;
-    PSTR &filePath = argv[1];
+    PSTR &filePath = argv[2];
+    int computerFD;
     int r;
     int &temp = r;
     libusb_context *ctx = NULL;
-    libusb_device_handle *hDevice;
+    libusb_device_handle *hDevice = NULL;
     FILE *fd = NULL;
     int actualLength = 0;
     long portion = 0;
     PSTR pBuffer = NULL;
     
-    if (argc != 2)
+    if (argc != 3)
         return 1;
     
     printf("Initializing...\n");
+    
+    computerFD = atoi(argv[1]);
+    if (!computerFD) {
+        fprintf(stderr, "Invalid computer file descriptor '%s'\n", argv[1]);
+        return 1;
+    }
     
     r = libusb_init(&ctx);
     if (r < 0) {
@@ -51,9 +56,9 @@ int main(int argc, char **argv) {
     
     printf("Connecting to your computer...\n");
     
-    hDevice = libusb_open_device_with_vid_pid(ctx, vendorID, productID);
-    if (!hDevice) {
-        fprintf(stderr, "Failed to connect to your device!\n");
+    r = libusb_wrap_sys_device(ctx, computerFD, &hDevice);
+    if (r) {
+        fprintf(stderr, "Failed to connect to your computer!\nError code: %d\n", r);
         libusb_exit(ctx);
         return 3;
     }
