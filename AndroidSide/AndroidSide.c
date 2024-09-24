@@ -13,8 +13,11 @@ int relaunchWithTAPI(PSTR executablePath, PSTR filePath) {
     char buffer[260];
     char *jsonData = fgets(buffer, 260, fd);
     cJSON *devicesList = cJSON_Parse(jsonData);
-    if (!cJSON_IsString(devicesList))
+    pclose(fd);
+    if (!cJSON_IsString(devicesList)) {
+        cJSON_Delete(devicesList);
         return 1;
+    }
     
     memset(buffer, 0, 260);
     sprintf(buffer, "termux-usb -r \"%s\"", jsonData->valuestring);
@@ -24,6 +27,7 @@ int relaunchWithTAPI(PSTR executablePath, PSTR filePath) {
     sprintf(buffer, "termux-usb -e \"%s\" \"%s\" \"%s\"", executablePath, jsonData->valuestring, filePath);
     system(buffer);
     
+    cJSON_Delete(devicesList);
     return 0;
 }
 
