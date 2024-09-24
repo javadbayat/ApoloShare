@@ -36,6 +36,9 @@ void trackProgress(long portion) {
     int multiplier = 1024 * 1024 * 1024;
     unsigned char i;
     
+    // This approach works fine, but I wish I could just overwrite
+    // the single line showing progress, rather than clear the
+    // whole terminal screen!
     system("clear");
     
     for (i = 0; i < 4; i++)
@@ -92,7 +95,7 @@ int main(int argc, char **argv) {
     
     printf("Preparing to send your file...\n");
     
-    pBuffer = malloc(BUFFER_SIZE);
+    pBuffer = (PSTR) malloc(BUFFER_SIZE);
     if (!pBuffer) {
         fprintf(stderr, "Not enough memory!\n");
         libusb_close(hDevice);
@@ -109,7 +112,7 @@ int main(int argc, char **argv) {
         return 3;
     }
     
-    while (TRUE) {
+    while (1) {
         actualLength = fread(pBuffer, 1, BUFFER_SIZE, fd);
         if (!actualLength) {
             printf("File Transfer was successfully completed!\n");
