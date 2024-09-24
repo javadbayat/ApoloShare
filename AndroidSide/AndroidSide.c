@@ -2,10 +2,30 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libusb-1.0/libusb.h>
+#include "cJSON.h"
 
 typedef char *PSTR;
 
 #define BUFFER_SIZE 4096
+
+int relaunchWithTAPI(PSTR executablePath, PSTR filePath) {
+    FILE *fd = popen("termux-usb -l", "r");
+    char buffer[260];
+    char *jsonData = fgets(buffer, 260, fd);
+    cJSON *devicesList = cJSON_Parse(jsonData);
+    if (!cJSON_IsString(devicesList))
+        return 1;
+    
+    memset(buffer, 0, 260);
+    sprintf(buffer, "termux-usb -r \"%s\"", jsonData->valuestring);
+    system(buffer);
+    
+    memset(buffer, 0, 260);
+    sprintf(buffer, "termux-usb -e \"%s\" \"%s\" \"%s\"", executablePath, jsonData->valuestring, filePath);
+    system(buffer);
+    
+    return 0;
+}
 
 void trackProgress(long portion) {
     const PSTR sizeTags[] = { "GB", "MB", "KB", "Bytes" };
@@ -36,6 +56,9 @@ int main(int argc, char **argv) {
     int actualLength = 0;
     long portion = 0;
     PSTR pBuffer = NULL;
+    
+    if (argc == 2)
+        return relaunchWithTAPI(argv[0], argv[1]);
     
     if (argc != 3)
         return 1;
