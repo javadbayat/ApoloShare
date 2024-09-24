@@ -11,8 +11,9 @@ typedef char *PSTR;
 int relaunchWithTAPI(PSTR executablePath, PSTR filePath) {
     FILE *fd = popen("termux-usb -l", "r");
     char buffer[260];
-    char *jsonData = fgets(buffer, 260, fd);
+    PSTR jsonData = fgets(buffer, 260, fd);
     cJSON *devicesList = cJSON_Parse(jsonData);
+    PSTR &devicePath = devicesList->valuestring;
     pclose(fd);
     if (!cJSON_IsString(devicesList)) {
         cJSON_Delete(devicesList);
@@ -20,11 +21,11 @@ int relaunchWithTAPI(PSTR executablePath, PSTR filePath) {
     }
     
     memset(buffer, 0, 260);
-    sprintf(buffer, "termux-usb -r \"%s\"", jsonData->valuestring);
+    sprintf(buffer, "termux-usb -r \"%s\"", devicePath);
     system(buffer);
     
     memset(buffer, 0, 260);
-    sprintf(buffer, "termux-usb -e \"%s\" \"%s\" \"%s\"", executablePath, jsonData->valuestring, filePath);
+    sprintf(buffer, "termux-usb -e \"%s\" \"%s\" \"%s\"", executablePath, devicePath, filePath);
     system(buffer);
     
     cJSON_Delete(devicesList);
@@ -32,7 +33,7 @@ int relaunchWithTAPI(PSTR executablePath, PSTR filePath) {
 }
 
 void trackProgress(long portion) {
-    const PSTR sizeTags[] = { "GB", "MB", "KB", "Bytes" };
+    PSTR sizeTags[] = { "GB", "MB", "KB", "Bytes" };
     int multiplier = 1024 * 1024 * 1024;
     unsigned char i;
     
