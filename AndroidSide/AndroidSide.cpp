@@ -42,11 +42,6 @@ void trackProgress(long portion) {
     int multiplier = 1024 * 1024 * 1024;
     unsigned char i;
     
-    // This approach works fine, but I wish I could just overwrite
-    // the single line showing progress, rather than clear the
-    // whole terminal screen!
-    system("clear");
-    
     for (i = 0; i < 4; i++)
     {
         if (portion >= multiplier)
@@ -55,7 +50,7 @@ void trackProgress(long portion) {
         multiplier /= 1024;
     }
 
-    printf("Transferred %.2f%s so far...\n", (float) portion / multiplier, sizeTags[i]);
+    printf("\rTransferred %.2f%s so far...", (float) portion / multiplier, sizeTags[i]);
 }
 
 int main(int argc, char **argv) {
