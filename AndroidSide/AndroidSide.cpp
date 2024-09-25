@@ -6,7 +6,12 @@
 
 typedef char *PSTR;
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE (1024 * 1024)
+#define USB_EP (1 | LIBUSB_ENDPOINT_OUT)
+#define ZeroBuffer(buff) memset(buff, 0, sizeof(buff))
+
+#define Error(message) fprintf(stderr, message)
+#define ErrorC(message, code) fprintf(stderr, message, code)
 
 int relaunchWithTAPI(PSTR executablePath, PSTR filePath) {
     FILE *fd = popen("termux-usb -l", "r");
@@ -20,11 +25,11 @@ int relaunchWithTAPI(PSTR executablePath, PSTR filePath) {
         return 1;
     }
     
-    memset(buffer, 0, 260);
+    ZeroBuffer(buffer);
     sprintf(buffer, "termux-usb -r \"%s\"", devicePath);
     system(buffer);
     
-    memset(buffer, 0, 260);
+    ZeroBuffer(buffer);
     sprintf(buffer, "termux-usb -e \"%s\" \"%s\" \"%s\"", executablePath, devicePath, filePath);
     system(buffer);
     
@@ -75,13 +80,13 @@ int main(int argc, char **argv) {
     
     computerFD = atoi(argv[1]);
     if (!computerFD) {
-        fprintf(stderr, "Invalid computer file descriptor '%s'\n", argv[1]);
+        ErrorC("Invalid computer file descriptor '%s'\n", argv[1]);
         return 1;
     }
     
     r = libusb_init(&ctx);
     if (r < 0) {
-        fprintf(stderr, "Failed to initialize libusb!\nError code: %d\n", r);
+        ErrorC("Failed to initialize libusb!\nError code: %d\n", r);
         return 2;
     }
     
@@ -89,7 +94,7 @@ int main(int argc, char **argv) {
     
     r = libusb_wrap_sys_device(ctx, computerFD, &hDevice);
     if (r) {
-        fprintf(stderr, "Failed to connect to your computer!\nError code: %d\n", r);
+        ErrorC("Failed to connect to your computer!\nError code: %d\n", r);
         libusb_exit(ctx);
         return 3;
     }
@@ -98,7 +103,7 @@ int main(int argc, char **argv) {
     
     pBuffer = (PSTR) malloc(BUFFER_SIZE);
     if (!pBuffer) {
-        fprintf(stderr, "Not enough memory!\n");
+        Error("Not enough memory!\n");
         libusb_close(hDevice);
         libusb_exit(ctx);
         return 3;
@@ -106,7 +111,7 @@ int main(int argc, char **argv) {
     
     fd = fopen(filePath, "wb");
     if (!fd) {
-        fprintf(stderr, "Failed to open your file!\n");
+        Error("Failed to open your file!\n");
         free(pBuffer);
         libusb_close(hDevice);
         libusb_exit(ctx);
@@ -120,8 +125,8 @@ int main(int argc, char **argv) {
             break;
         }
         
-        if (libusb_bulk_transfer(hDevice, (1 | LIBUSB_ENDPOINT_OUT), (unsigned char *) pBuffer, actualLength, &temp, 0)) {
-            fprintf(stderr, "Error in bulk transfer!\n");
+        if (libusb_bulk_transfer(hDevice, USB_EP, (unsigned char *) pBuffer, actualLength, &temp, 0)) {
+            Error("Error in bulk transfer!\n");
             break;
         }
         
