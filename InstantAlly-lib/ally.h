@@ -5,19 +5,19 @@
 #include <array>
 
 #ifndef HTAALLY_IMPLEMENTATION
-	#ifdef _DEBUG
-		#pragma comment(lib, "InstantAllyDbg.lib")
-	#else
-		#pragma comment(lib, "InstantAlly.lib")
-	#endif
+    #ifdef _DEBUG
+        #pragma comment(lib, "InstantAllyDbg.lib")
+    #else
+        #pragma comment(lib, "InstantAlly.lib")
+    #endif
 #endif
 
 typedef HRESULT (CALLBACK* PFNALLYPROC)(VARIANTARG *pVarArgs, UINT cArgs, VARIANT *pVarResult, EXCEPINFO *pExcepInfo, LPVOID lpExtraData);
 
 HRESULT STDAPICALLTYPE InstantAllyStartup( PFNALLYPROC pfnAllyController, LPVOID lpExtraData, DWORD dwFlags = 0 );
 
-#define ALLY_E_HANDSHAKE_FAILED			MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 1)
-#define ALLY_E_ACK_TIMED_OUT			MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 2)
+#define ALLY_E_HANDSHAKE_FAILED            MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 1)
+#define ALLY_E_ACK_TIMED_OUT            MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 2)
 
 #define GetLastErrorAsHR HRESULT_FROM_WIN32(GetLastError())
 
