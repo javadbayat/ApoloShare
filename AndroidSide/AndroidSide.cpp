@@ -21,6 +21,7 @@ int relaunchWithTAPI(PSTR executablePath, PSTR filePath) {
     PSTR &devicePath = devicesList->valuestring;
     pclose(fd);
     if (!cJSON_IsString(devicesList)) {
+        Error("No USB device found!\n");
         cJSON_Delete(devicesList);
         return 1;
     }
