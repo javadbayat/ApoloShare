@@ -5,11 +5,19 @@
 #include <array>
 
 #ifndef HTAALLY_IMPLEMENTATION
-    #ifdef _DEBUG
-        #pragma comment(lib, "InstantAllyDbg.lib")
-    #else
-        #pragma comment(lib, "InstantAlly.lib")
-    #endif
+	#ifdef ARCH_X64
+		#ifdef _DEBUG
+			#pragma comment(lib, "InstantAllyDbg-x64.lib")
+		#else
+			#pragma comment(lib, "InstantAlly-x64.lib")
+		#endif
+	#else
+		#ifdef _DEBUG
+			#pragma comment(lib, "InstantAllyDbg-x86.lib")
+		#else
+			#pragma comment(lib, "InstantAlly-x86.lib")
+		#endif
+	#endif
 #endif
 
 typedef HRESULT (CALLBACK* PFNALLYPROC)(VARIANTARG *pVarArgs, UINT cArgs, VARIANT *pVarResult, EXCEPINFO *pExcepInfo, LPVOID lpExtraData);
