@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     }
     
     r = libusb_init(&ctx);
-    if (r < 0) {
+    if (r) {
         ErrorC("Failed to initialize libusb!\nError code: %d\n", r);
         return 2;
     }
@@ -96,22 +96,32 @@ int main(int argc, char **argv) {
     }
     
     printf("Preparing to send your file...\n");
+
+    r = libusb_claim_interface(hDevice, 0);
+    if (r) {
+        ErrorC("Failed to claim the USB interface!\nError code: %d\n", r);
+        libusb_close(hDevice);
+        libusb_exit(ctx);
+        return 4;
+    }
     
     pBuffer = (PSTR) malloc(BUFFER_SIZE);
     if (!pBuffer) {
         Error("Not enough memory!\n");
+        libusb_release_interface(hDevice, 0);
         libusb_close(hDevice);
         libusb_exit(ctx);
-        return 3;
+        return 5;
     }
     
     fd = fopen(filePath, "wb");
     if (!fd) {
         Error("Failed to open your file!\n");
         free(pBuffer);
+        libusb_release_interface(hDevice, 0);
         libusb_close(hDevice);
         libusb_exit(ctx);
-        return 3;
+        return 6;
     }
     
     while (1) {
@@ -132,6 +142,7 @@ int main(int argc, char **argv) {
     
     fclose(fd);
     free(pBuffer);
+    libusb_release_interface(hDevice, 0);
     libusb_close(hDevice);
     libusb_exit(ctx);
     return 0;
