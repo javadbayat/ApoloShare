@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libusb-1.0/libusb.h>
+#include <sys/stat.h>
 #include "cJSON.h"
 
 typedef char *PSTR;
@@ -65,6 +66,8 @@ int main(int argc, char **argv) {
     int actualLength = 0;
     long portion = 0;
     PSTR pBuffer = NULL;
+    struct stat fileInfo;
+    long long fileSize;
     
     if (argc == 2)
         return relaunchWithTAPI(argv[0], argv[1]);
@@ -116,13 +119,25 @@ int main(int argc, char **argv) {
     
     fd = fopen(filePath, "wb");
     if (!fd) {
-        Error("Failed to open your file!\n");
+        ErrorC("Failed to open your file!\nError code: %d\n", errno);
         free(pBuffer);
         libusb_release_interface(hDevice, 0);
         libusb_close(hDevice);
         libusb_exit(ctx);
         return 6;
     }
+
+    if (fstat(fd, &fileInfo)) {
+        ErrorC("Failed to retrieve the size of your file!\nError code: %d\n", errno);
+        fclose(fd);
+        free(pBuffer);
+        libusb_release_interface(hDevice, 0);
+        libusb_close(hDevice);
+        libusb_exit(ctx);
+        return 7;
+    }
+
+    fileSize = (long long)(fileInfo.st_size);
     
     while (1) {
         actualLength = fread(pBuffer, 1, BUFFER_SIZE, fd);
